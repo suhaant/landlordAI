@@ -1,82 +1,183 @@
-# AI Landlord Agent (Hackathon Skeleton)
+Claude finished the response
 
-Scope: repair scheduling (photo intake -> severity -> book slot -> voice confirm)
-+ mocked rent collection status + voice-call layer tying it together.
+Recognized request for templated prompt matching established format
+Recognized request for templated prompt matching established format
+I'm building a FastAPI hackathon project called "AI Landlord Agent" (repo:
+lastmile). I own the calendar/scheduling core — this is the critical path
+everyone else's work depends on, so I need it working first.
 
-Explicitly out of scope: eviction management, legal advice, tax auditing —
-cut for liability reasons, see PRD notes.
+Here's what's already stubbed:
 
-## Stack
+app/services/calendar_service.py:
+
+def get_free_busy(start: datetime, end: datetime) -> List[dict]:
+    # TODO: call Calendar API freebusy.query for the demo calendar
+    raise NotImplementedError
+
+def pick_best_slot(candidate_slots: List[datetime]) -> datetime:
+    # TODO: get free/busy for range covering candidates, return first
+    # non-conflicting one, fall back to closest if none are free
+    return candidate_slots[0]  # currently just returns the first one
+
+def create_event(title: str, start_time: datetime, duration_minutes: int = 60) -> str:
+    # TODO: call Calendar API events.insert, return created event ID
+    raise NotImplementedError
+
+app/services/scheduling.py already calls these functions to book a repair
+slot once a mock contractor offers candidate times (from mock_provider.py)
+and a severity score has been assigned (from vision.py, owned by teammate).
+
+I need to:
+1. Set up Google Cloud OAuth for the Calendar API (Desktop app OAuth
+   client, since this is a local hackathon demo, not a hosted app)
+2. Write a one-time auth script that generates a token.json via
+   InstalledAppFlow, so I can auth once with my own Google account and
+   reuse the token
+3. Implement get_free_busy, pick_best_slot, and create_event using the
+   real Google Calendar API (google-api-python-client), reading
+   credentials from token.json
+4. Handle the "no candidate slot is free" fallback case in pick_best_slot
+   cleanly, so booking never crashes even if every offered time conflicts
+
+Requirements are already in requirements.txt (google-api-python-client,
+google-auth-httplib2, google-auth-oauthlib). Give me working code, not
+pseudocode — I need this fully functional in under an hour since three
+other people are blocked on this piece working before they can integrate.
+create a 1 sentence description
+
+An AI agent that turns a tenant's photo of a repair issue into a booked, calendar-confirmed contractor visit — with voice call confirmation and mocked rent tracking layered in.
+
+explain how we are using action layer 1 sentence
+
+We use ActionLayer to place the actual voice calls — confirming the booked repair slot with the tenant/contractor and delivering rent reminders — so the agent's decisions turn into real phone conversations, not just API calls.
+
+no em dash
+
+We use ActionLayer to place the actual voice calls, confirming the booked repair slot with the tenant and contractor and delivering rent reminders, so the agent's decisions turn into real phone conversations instead of just API calls.
+
+same wiht novita
+
+We use Novita to run the vision model that scores repair severity from a tenant's photo and description, turning that visual input into a structured decision the rest of the agent can act on.
+
+Real estate agencies take up to 10% of profits from landlords. Our product removes the need for them altogether. Instead of having to call your landlord if there's an issue, call the agent and it will do it all for you
+
+buff this up
+
+
+Thought for 2s
+Thought for 2s
+Real estate agencies take up to 10% off the top, just to manage things a landlord could hand off entirely. Our agent replaces that overhead. No more chasing a property manager or waiting on a callback. Tenants just call the agent. It scores the issue, books the repair, confirms it by voice, and keeps rent on track, all without a human in the loop.
+
+create a readme
+
+
+Architected polished hackathon pitch document highlighting problem, solution, and technology
+Architected polished hackathon pitch document highlighting problem, solution, and technology
+Updated README.md in the zip with the pitch, sponsor tool usage, architecture diagram, and scope cuts. Swap it into your local repo and push.
+
+
+Lastmile
+ZIP 
+just give me the file
+
+
+Presented file
+Presented file
+Here's the README file on its own.
+
+
+Readme
+Document · MD 
+
+
+
+
+
+Claude is AI and can make mistakes. Please double-check responses.
+
+
+Readme · MD
+# AI Landlord Agent
+ 
+An AI agent that turns a tenant's photo of a repair issue into a booked, calendar-confirmed contractor visit, with voice call confirmation and rent tracking layered in.
+ 
+## The Problem
+ 
+Real estate agencies take up to 10% off the top, just to manage things a landlord could hand off entirely. Tenants call a property manager, wait on a callback, and hope someone follows up. Landlords pay a cut for coordination that mostly amounts to phone calls and scheduling.
+ 
+## What We Built
+ 
+Our agent replaces that overhead. Tenants just call the agent. It scores the issue, books the repair, confirms it by voice, and keeps rent on track, all without a human in the loop.
+ 
+**Flow:**
+1. Tenant submits a photo and description of a repair issue
+2. Agent scores severity (emergency vs. routine) from the photo
+3. Agent checks a mock contractor's availability against the landlord's real calendar
+4. Agent books the best matching slot and confirms it with a real voice call
+5. Rent status is tracked on a mocked ledger, with voice reminders for anything overdue
+## How We Used the Sponsor Tools
+ 
+**Novita** runs the vision model that scores repair severity from a tenant's photo and description, turning that visual input into a structured decision the rest of the agent can act on.
+ 
+**ActionLayer** places the actual voice calls, confirming the booked repair slot with the tenant and contractor and delivering rent reminders, so the agent's decisions turn into real phone conversations instead of just API calls.
+ 
+**Google Calendar API** grounds the whole flow in a real calendar, so the agent is booking against actual availability, not a fake schedule.
+ 
+## Scope
+ 
+We intentionally kept this to repair scheduling, rent status, and voice coordination. Eviction handling, legal advice, and tax matters are cut from scope, since those carry real legal and financial consequences that don't belong in a hackathon demo.
+ 
+## Architecture
+ 
+```
+Tenant photo + description
+        |
+        v
+  Novita (severity scoring)
+        |
+        v
+  Mock contractor slots  <-->  Google Calendar (real availability)
+        |
+        v
+  Best slot booked + event created
+        |
+        v
+  ActionLayer (voice confirmation call)
+```
+ 
+Rent reminders follow the same voice path, triggered off a mocked ledger rather than a real payment rail.
+ 
+## Tech Stack
+ 
 - FastAPI backend
-- Novita: vision model (severity scoring), reasoning model (slot matching)
-- ActionLayer: voice calls (repair confirmation, rent reminders)
-- Google Calendar API: real slot booking
-
-## Build order (do this first, in order)
-1. **Google Calendar auth** (`app/services/calendar_service.py`) — do this
-   immediately, it's the dependency everything else needs. OAuth setup
-   can eat unexpected time.
-2. **Mock provider** (`app/services/mock_provider.py`) — already stubbed
-   with fake slot data, adjust as needed.
-3. **Novita vision call** (`app/services/vision.py`) — wire the real API
-   call in place of the keyword-based stub.
-4. **ActionLayer voice call** (`app/services/voice_service.py`) — wire in
-   once calendar + vision work standalone.
-5. End-to-end test, then polish demo narration.
-
-## Run locally
+- Novita (vision model)
+- ActionLayer (voice calls)
+- Google Calendar API
+## Project Structure
+ 
+```
+app/
+  main.py                 FastAPI entrypoint
+  routers/                repairs, rent, voice endpoints
+  services/
+    vision.py              Novita severity scoring
+    calendar_service.py    Google Calendar auth + booking
+    mock_provider.py       fake contractor availability
+    scheduling.py          ties severity + calendar + booking together
+    rent_ledger.py         mocked rent status
+    voice_service.py       ActionLayer call handling
+  models/schemas.py         request/response models
+```
+ 
+## Running Locally
+ 
 ```bash
 pip install -r requirements.txt
-cp .env.example .env  # fill in keys
+cp .env.example .env  # fill in API keys
 uvicorn app.main:app --reload
 ```
+ 
+## What's Not Real
+ 
+Rent collection is a mocked in-memory ledger. No real payment rails are wired in, on purpose, this was a deliberate scope cut to avoid handling real money in a hackathon demo.
 
-## Endpoints
-- `POST /repairs/submit` — tenant submits photo + description
-- `POST /repairs/{ticket_id}/book` — triggers scheduling + voice confirm
-- `GET /rent/status/{tenant_id}` — mocked rent ledger status
-- `POST /rent/remind/{tenant_id}` — triggers voice reminder
-- `POST /voice/call` — direct call trigger (mostly used internally)
-- `POST /voice/webhook` — ActionLayer callback receiver
-
-## Demo — presenter script (~2 minutes, two windows)
-
-The demo UI is served by the app itself at **http://localhost:8000** —
-no separate frontend to run. Everything is mocked in-memory
-(`app/services/`); restart the server to reset state.
-
-Setup: open **/tenant** and **/landlord** in two windows side by side.
-The landlord feed polls every 2s, so it updates live while you drive
-the tenant window.
-
-1. **Emergency repair** — tenant window, pick **Rosa Delgado**, click the
-   **💧 Burst pipe** preset → Send. Agent replies in-chat: triaged
-   *emergency / plumbing*, auto-booked the **soonest** emergency-capable
-   contractor (same evening). Click **📅 Add to calendar** → downloads a
-   real .ics.
-2. **Landlord window** — the report → triage → booking trail has already
-   appeared in the live feed; sidebar shows the repair with an
-   *emergency* pill.
-3. **Routine contrast** — tenant window, switch to **Dev Patel**, click
-   **🔌 Dead outlet** → Send. This time the agent picks the
-   **highest-rated** electrician days out, business hours.
-4. **Rent** — landlord sidebar: Marcus Webb is 2 months overdue. Click
-   **Remind** → mocked SMS appears in the feed, button flips to *Sent ✓*.
-
-## Known risks
-- ActionLayer's call tool behavior/latency unknown until hands-on session
-  — calendar + vision logic is independent, build/demo those first if
-  voice proves flaky.
-- If live voice is unreliable during the demo, fall back to text-transcript
-  simulation so core logic still demos cleanly.
-
-## Vision demo photos
-- **LOW:** loose cabinet knob; door still works.
-- **MEDIUM:** cabinet door detached from one hinge, with no sharp debris.
-- **MEDIUM:** dripping faucet with all water contained in a bowl.
-- **HIGH:** steady under-sink leak visibly spreading across the cabinet floor.
-- **EMERGENCY:** use a safe, disconnected damaged-cable prop and describe an
-  outlet that sparked with a burning smell. Never stage a real electrical hazard.
-
-Use clear JPEGs under 1 MB and pre-run the exact demo photos against the selected
-Novita model before presenting.
