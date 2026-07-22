@@ -39,6 +39,23 @@ uvicorn app.main:app --reload
 - `POST /voice/call` — direct call trigger (mostly used internally)
 - `POST /voice/webhook` — ActionLayer callback receiver
 
+## Demo page & presenter script (~90 seconds)
+
+The demo UI is served by the app itself at **http://localhost:8000** —
+no separate frontend to run. Everything is mocked in-memory
+(`app/services/`); restart the server to reset state.
+
+1. **Repair flow** — click the **💧 Burst pipe** preset, then **Submit
+   repair request**. Point out the agent auto-triaged it as
+   *emergency / plumbing* and only emergency-capable contractors with
+   same-day slots came back.
+2. Click a slot card → it turns green with a booking confirmation.
+3. (Optional contrast) Click **🔌 Dead outlet** preset → resubmit → slots
+   are now *routine*: spread over the next few days, business hours only.
+4. **Rent flow** — in section 3, pick **Marcus Webb** (2 months overdue,
+   red badge) → **Send payment reminder** → show the mocked SMS. Pick
+   **Amara Osei** to show a paid tenant (no reminder button).
+
 ## Known risks
 - ActionLayer's call tool behavior/latency unknown until hands-on session
   — calendar + vision logic is independent, build/demo those first if
