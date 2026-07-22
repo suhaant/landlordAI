@@ -54,8 +54,9 @@ async function refresh() {
   const repairsHtml = o.repairs.length ? o.repairs.map(r => `
       <div class="trow">
         <div class="grow"><b>${r.id}</b> · ${r.category}
-          <div class="sub">${r.booked_slot ? r.booked_slot.contractor : '—'}</div></div>
-        <span class="pill ${r.urgency}">${r.urgency}</span>
+          <div class="sub">${r.booked_slot ? r.booked_slot.contractor : '—'}</div>
+          <div class="sub">Dispatch: ${r.dispatch_status || 'not requested'}</div></div>
+        <span class="pill ${(r.severity || r.urgency).toLowerCase()}">${r.severity || r.urgency}</span>
       </div>`).join('')
     : '<div class="sub" style="color:var(--dim)">None yet.</div>';
 

@@ -26,9 +26,12 @@ from enum import Enum
 from typing import Any, Optional
 
 import httpx
+from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
 from app.services import rent_ledger
+
+load_dotenv()
 
 logger = logging.getLogger("voice_service")
 
@@ -56,7 +59,8 @@ NOVITA_MODEL = os.getenv("NOVITA_MODEL", "meta-llama/llama-3.1-8b-instruct")
 # Ledger has no phone numbers — fake ones so the demo has something to show.
 TENANT_PHONES = {"t1": "+14155550111", "t2": "+14155550122", "t3": "+14155550133",
                  "t4": "+14155550144", "t5": "+14155550155"}
-DEFAULT_CONTRACTOR_PHONE = "+14155550home"
+DEMO_CONTRACTOR_PHONE = os.getenv("DEMO_CONTRACTOR_PHONE", "")
+DEMO_PLUMBER_PHONE = os.getenv("DEMO_PLUMBER_PHONE", "")
 
 
 # --------------------------------------------------------------------------- #
@@ -207,6 +211,14 @@ async def run_repair_confirm(repair: dict, *, language: str = "en") -> dict:
     """
     slot = repair.get("booked_slot") or (repair.get("slots") or [{}])[0]
     contractor = slot.get("contractor", "the contractor")
+    contractor_phone = (
+        slot.get("contractor_phone")
+        or (DEMO_PLUMBER_PHONE if repair.get("category") == "plumbing" else "")
+        or DEMO_CONTRACTOR_PHONE
+        or ("+15555550199" if SIMULATION else "")
+    )
+    if not contractor_phone:
+        raise ValueError("No contractor phone configured for live dispatch")
     issue = repair.get("description", "the reported issue")
     slot_human = _human_time(slot.get("start"))
     tenant = rent_ledger.get_status(repair.get("tenant_id", "")) or {}
@@ -215,7 +227,7 @@ async def run_repair_confirm(repair: dict, *, language: str = "en") -> dict:
     # Leg 1 — contractor
     contractor_req = CallRequest(
         call_type=CallType.REPAIR_CONFIRM, reference_id=repair["id"],
-        phone_number=DEFAULT_CONTRACTOR_PHONE, language=language,
+        phone_number=contractor_phone, language=language,
         goal=contractor_goal(contractor=contractor, issue=issue,
                              slot_human=slot_human, language=language),
         context={"leg": "contractor", "slot_human": slot_human,

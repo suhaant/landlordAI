@@ -1,17 +1,22 @@
 # ponytail: pure mock, no real scheduling. Deterministic per repair_id so the
 # demo looks stable across refreshes.
+import os
 import random
 from datetime import datetime, timedelta
 
 CONTRACTORS = [
     {"id": "c1", "name": "RapidFix 24/7 Maintenance", "trade": "general",
-     "rating": 4.6, "emergency": True, "hours": (0, 24), "callout_fee": 95},
+     "rating": 4.6, "emergency": True, "hours": (0, 24), "callout_fee": 95,
+     "phone_env": "DEMO_CONTRACTOR_PHONE"},
     {"id": "c2", "name": "Hendricks Plumbing & Heating", "trade": "plumbing",
-     "rating": 4.9, "emergency": True, "hours": (7, 19), "callout_fee": 120},
+     "rating": 4.9, "emergency": True, "hours": (7, 19), "callout_fee": 120,
+     "phone_env": "DEMO_PLUMBER_PHONE"},
     {"id": "c3", "name": "Volt & Vine Electrical", "trade": "electrical",
-     "rating": 4.7, "emergency": False, "hours": (8, 17), "callout_fee": 110},
+     "rating": 4.7, "emergency": False, "hours": (8, 17), "callout_fee": 110,
+     "phone_env": "DEMO_CONTRACTOR_PHONE"},
     {"id": "c4", "name": "GreenLeaf Property Services", "trade": "general",
-     "rating": 4.3, "emergency": False, "hours": (9, 17), "callout_fee": 75},
+     "rating": 4.3, "emergency": False, "hours": (9, 17), "callout_fee": 75,
+     "phone_env": "DEMO_CONTRACTOR_PHONE"},
 ]
 
 
@@ -40,7 +45,10 @@ def get_available_slots(urgency: str = "routine", category: str = "general",
         for t in times:
             slots.append({
                 "slot_id": f"{c['id']}-{t.strftime('%Y%m%d%H%M')}",
+                "contractor_id": c["id"],
                 "contractor": c["name"],
+                "contractor_trade": c["trade"],
+                "contractor_phone": os.getenv(c["phone_env"], ""),
                 "rating": c["rating"],
                 "callout_fee": c["callout_fee"],
                 "start": t.isoformat(),

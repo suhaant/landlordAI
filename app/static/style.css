@@ -19,6 +19,9 @@ button.ghost { background: var(--card); border: 1px solid var(--line); color: va
 .pill.unpaid { background: #4d3f1d; color: var(--amber); }
 .pill.overdue { background: #4d2626; color: var(--red); }
 .pill.emergency { background: #4d2626; color: var(--red); }
+.pill.high { background: #4d2f26; color: #ff9b6b; }
+.pill.medium { background: #4d3f1d; color: var(--amber); }
+.pill.low { background: #26304d; color: var(--accent); }
 .pill.routine { background: #26304d; color: var(--accent); }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
 

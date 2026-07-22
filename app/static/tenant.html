@@ -13,6 +13,9 @@
   .composer .inner { max-width: 760px; margin: 0 auto; }
   .composer .row { display: flex; gap: 10px; margin-top: 8px; }
   .composer textarea { flex: 1; resize: none; height: 44px; }
+  .photo-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+  .photo-row input { flex: 1; font-size: 13px; }
+  #send-status { color: var(--dim); font-size: 12px; min-height: 18px; }
 </style>
 </head>
 <body>
@@ -31,6 +34,10 @@
     <button class="ghost" onclick="preset('Water is leaking from a burst pipe under the kitchen sink, spreading fast!')">💧 Burst pipe</button>
     <button class="ghost" onclick="preset('The bedroom outlet stopped working, lights are fine though.')">🔌 Dead outlet</button>
     <button class="ghost" onclick="preset('Bathroom door handle is loose and squeaks.')">🚪 Loose handle</button>
+  </div>
+  <div class="photo-row">
+    <input id="photo" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/heic">
+    <span id="send-status"></span>
   </div>
   <div class="row">
     <textarea id="desc" placeholder="Describe a problem in your unit…"
@@ -89,11 +96,26 @@ function preset(text) { $('desc').value = text; $('desc').focus(); }
 async function send() {
   const text = $('desc').value.trim();
   if (!text) return;
+  const photo = $('photo').files[0];
+  const form = new FormData();
+  form.append('tenant_id', $('tenant').value);
+  form.append('description', text);
+  if (photo) form.append('photo', photo);
+
   $('desc').value = '';
+  $('send-status').textContent = photo
+    ? 'Analyzing photo and routing the repair…'
+    : 'Routing the repair…';
   bubble('user', text, new Date().toISOString());
-  await api('/repairs/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tenant_id: $('tenant').value, description: text }) });
-  refresh(true);
+  try {
+    await api('/repairs/submit', { method: 'POST', body: form });
+    $('photo').value = '';
+    await refresh(true);
+  } catch (error) {
+    bubble('agent', 'I could not process that report. Please retry with a clear JPEG or PNG.', new Date().toISOString());
+  } finally {
+    $('send-status').textContent = '';
+  }
 }
 
 async function init() {

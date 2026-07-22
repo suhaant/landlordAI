@@ -83,3 +83,75 @@ uvicorn app.main:app --reload
  
 Rent collection is a mocked in-memory ledger. No real payment rails are wired in, on purpose, this was a deliberate scope cut to avoid handling real money in a hackathon demo.
 
+## Endpoints
+- `POST /repairs/submit` — tenant submits photo + description
+- `POST /repairs/{ticket_id}/book` — triggers scheduling + voice confirm
+- `GET /rent/status/{tenant_id}` — mocked rent ledger status
+- `POST /rent/remind/{tenant_id}` — triggers voice reminder
+- `POST /voice/call` — direct call trigger (mostly used internally)
+- `POST /voice/webhook` — ActionLayer callback receiver
+
+## Demo — presenter script (~2 minutes, two windows)
+
+The demo UI is served by the app itself at **http://localhost:8000** —
+no separate frontend to run. Everything is mocked in-memory
+(`app/services/`); restart the server to reset state.
+
+Setup: open **/tenant** and **/landlord** in two windows side by side.
+The landlord feed polls every 2s, so it updates live while you drive
+the tenant window.
+
+1. **Photo repair** — tenant window, pick **Rosa Delgado**, click the
+   **💧 Burst pipe** preset, attach a clear plumbing photo, then Send. Novita
+   scores the photo and description together. The agent routes the job to
+   **Hendricks Plumbing & Heating**, books the best severity-appropriate slot,
+   and automatically starts contractor + tenant confirmation calls.
+2. **Landlord window** — the report → triage → booking trail has already
+   appeared in the live feed. The sidebar shows the four-level severity and
+   dispatch status; the feed shows call confirmation. Calls are simulated by
+   default so this path is deterministic on stage.
+3. **Routine contrast** — tenant window, switch to **Dev Patel**, click
+   **🔌 Dead outlet** → Send. This time the agent picks the
+   **highest-rated** electrician days out, business hours.
+4. **Rent** — landlord sidebar: Marcus Webb is 2 months overdue. Click
+   **Remind** → mocked SMS appears in the feed, button flips to *Sent ✓*.
+
+## Known risks
+- ActionLayer's call tool behavior/latency unknown until hands-on session
+  — calendar + vision logic is independent, build/demo those first if
+  voice proves flaky.
+- If live voice is unreliable during the demo, fall back to text-transcript
+  simulation so core logic still demos cleanly.
+
+## Vision demo photos
+- **LOW:** loose cabinet knob; door still works.
+- **MEDIUM:** cabinet door detached from one hinge, with no sharp debris.
+- **MEDIUM:** dripping faucet with all water contained in a bowl.
+- **HIGH:** steady under-sink leak visibly spreading across the cabinet floor.
+- **EMERGENCY:** use a safe, disconnected damaged-cable prop and describe an
+  outlet that sparked with a burning smell. Never stage a real electrical hazard.
+
+Use clear JPEGs under 1 MB and pre-run the exact demo photos against the selected
+Novita model before presenting.
+
+## Integrated repair dispatch
+
+`POST /repairs/submit` accepts either the original JSON body or multipart form
+data with `tenant_id`, `description`, and optional `photo`. With a photo, the
+flow is:
+
+`photo + description → Novita severity → trade routing → slot booking → call confirmation`
+
+Set these values in `.env` for the demo:
+
+```dotenv
+VOICE_SIMULATION=true
+DEMO_AUTO_DISPATCH=true
+DEMO_PLUMBER_PHONE=
+```
+
+`DEMO_PLUMBER_PHONE` may be blank in simulation. Before setting
+`VOICE_SIMULATION=false`, provide a real E.164 test number and replace the
+explicitly unverified ActionLayer request/webhook mapping in
+`app/services/voice_service.py` with the API contract from the ActionLayer
+hackathon session.
