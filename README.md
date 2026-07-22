@@ -102,7 +102,7 @@ The landlord feed polls every 2s, so it updates live while you drive
 the tenant window.
 
 1. **Photo repair** — tenant window, pick **Rosa Delgado**, click the
-   **💧 Burst pipe** preset, attach a clear plumbing photo, then Send. Novita
+   **Burst pipe** preset, attach a clear plumbing photo, then Send. Novita
    scores the photo and description together. The agent routes the job to
    **Hendricks Plumbing & Heating**, books the best severity-appropriate slot,
    and automatically starts contractor + tenant confirmation calls.
@@ -111,7 +111,7 @@ the tenant window.
    dispatch status; the feed shows call confirmation. Calls are simulated by
    default so this path is deterministic on stage.
 3. **Routine contrast** — tenant window, switch to **Dev Patel**, click
-   **🔌 Dead outlet** → Send. This time the agent picks the
+   **Dead outlet** → Send. This time the agent picks the
    **highest-rated** electrician days out, business hours.
 4. **Rent** — landlord sidebar: Marcus Webb is 2 months overdue. Click
    **Remind** → mocked SMS appears in the feed, button flips to *Sent ✓*.

@@ -142,7 +142,7 @@ def create_repair(req: RepairRequest, severity: Severity | None = None) -> dict:
                 "Checking contractor availability…"
             ),
         },
-        {"ts": now(), "text": f"✅ Booked {slot['contractor']} ({slot['rating']}★) "
+        {"ts": now(), "text": f"Booked {slot['contractor']} ({slot['rating']}★) "
                               f"for {when} — I picked {reason}. "
                               f"They’ll need about {slot['window_hours']}h access."},
     ]
@@ -156,13 +156,13 @@ def create_repair(req: RepairRequest, severity: Severity | None = None) -> dict:
                           ),
                           "booked_slot": slot, "timeline": timeline,
                           "slots": slots, "has_photo": severity is not None}
-    log("repair", f"🔧 {tenant['name']} (unit {tenant['unit']}) reported: "
+    log("repair", f"{tenant['name']} (unit {tenant['unit']}) reported: "
                   f"“{req.description}”", repair_id=repair_id)
-    log("triage", f"🧠 Triaged {repair_id} as {severity_value} / {category} — "
+    log("triage", f"Triaged {repair_id} as {severity_value} / {category} — "
                   f"{len(slots)} slots found across "
                   f"{len({s['contractor'] for s in slots})} contractors",
         repair_id=repair_id)
-    log("booking", f"📅 Auto-booked {slot['contractor']} ({slot['rating']}★, "
+    log("booking", f"Auto-booked {slot['contractor']} ({slot['rating']}★, "
                    f"${slot['callout_fee']} callout) for {when} — {reason}. "
                    f"Tenant notified.", repair_id=repair_id)
     return REPAIRS[repair_id]
@@ -177,13 +177,13 @@ async def dispatch_repair(repair_id: str) -> None:
     repair["timeline"].append({
         "ts": now(),
         "text": (
-            f"📞 Calling {repair['booked_slot']['contractor']} on the landlord’s "
+            f"Calling {repair['booked_slot']['contractor']} on the landlord’s "
             "behalf to confirm the repair."
         ),
     })
     log(
         "dispatch",
-        f"📞 Contacting {repair['booked_slot']['contractor']} for {repair_id}.",
+        f"Contacting {repair['booked_slot']['contractor']} for {repair_id}.",
         repair_id=repair_id,
     )
 
@@ -202,10 +202,10 @@ async def dispatch_repair(repair_id: str) -> None:
             else "live"
         )
         summary = (
-            f"✅ {repair['booked_slot']['contractor']} and tenant confirmed "
+            f"{repair['booked_slot']['contractor']} and tenant confirmed "
             f"the {result['slot']} appointment ({mode} call)."
             if result["confirmed"]
-            else "⚠️ Call completed but the appointment needs landlord follow-up."
+            else "Call completed but the appointment needs landlord follow-up."
         )
         repair["timeline"].append({"ts": now(), "text": summary})
         log("dispatch", summary, repair_id=repair_id)
@@ -213,11 +213,11 @@ async def dispatch_repair(repair_id: str) -> None:
         repair["dispatch_status"] = "failed"
         repair["timeline"].append({
             "ts": now(),
-            "text": "⚠️ Contractor call failed; the landlord has been notified.",
+            "text": "Contractor call failed; the landlord has been notified.",
         })
         log(
             "dispatch",
-            f"⚠️ Dispatch failed for {repair_id}: {exc}",
+            f"Dispatch failed for {repair_id}: {exc}",
             repair_id=repair_id,
         )
 
@@ -254,8 +254,8 @@ async def book_repair(
         raise HTTPException(400, "slot not available for this repair")
     repair.update(status="booked", booked_slot=slot)
     repair["timeline"].append(
-        {"ts": now(), "text": f"🔁 Rebooked: {slot['contractor']} for {fmt(slot['start'])}"})
-    log("booking", f"🔁 {repair_id} rebooked to {slot['contractor']} "
+        {"ts": now(), "text": f"Rebooked: {slot['contractor']} for {fmt(slot['start'])}"})
+    log("booking", f"{repair_id} rebooked to {slot['contractor']} "
                    f"for {fmt(slot['start'])}", repair_id=repair_id)
     if auto_dispatch_enabled():
         repair["dispatch_status"] = "queued"
@@ -303,7 +303,7 @@ def rent_remind(tenant_id: str):
     result = rent_ledger.send_reminder(tenant_id)
     if not result:
         raise HTTPException(404, "unknown tenant")
-    log("rent", f"💬 Sent payment reminder to "
+    log("rent", f"Sent payment reminder to "
                 f"{rent_ledger.get_status(tenant_id)['name']} via {result['channel']}: "
                 f"“{result['message']}”", tenant_id=tenant_id)
     return result
