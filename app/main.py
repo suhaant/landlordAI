@@ -13,11 +13,11 @@ from pydantic import BaseModel
 from app.services import mock_provider, rent_ledger
 
 from app.routers import voice
-app.include_router(voice.router)
 
 app = FastAPI(title="AI Landlord Agent")
 STATIC = Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
+app.include_router(voice.router)
 
 REPAIRS: dict[str, dict] = {}
 ACTIVITY: list[dict] = []  # agent action feed shown on the landlord page
