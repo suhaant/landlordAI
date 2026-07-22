@@ -69,3 +69,14 @@ the tenant window.
   voice proves flaky.
 - If live voice is unreliable during the demo, fall back to text-transcript
   simulation so core logic still demos cleanly.
+
+## Vision demo photos
+- **LOW:** loose cabinet knob; door still works.
+- **MEDIUM:** cabinet door detached from one hinge, with no sharp debris.
+- **MEDIUM:** dripping faucet with all water contained in a bowl.
+- **HIGH:** steady under-sink leak visibly spreading across the cabinet floor.
+- **EMERGENCY:** use a safe, disconnected damaged-cable prop and describe an
+  outlet that sparked with a burning smell. Never stage a real electrical hazard.
+
+Use clear JPEGs under 1 MB and pre-run the exact demo photos against the selected
+Novita model before presenting.
